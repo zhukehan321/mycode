@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style type="text/css">
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    .main {
+        width: 800px;
+        height: 400px;
+        margin: 50px auto;
+    }
+
+    .map {
+        position: relative;
+        width: 797px;
+        height: 392px;
+        background: #ccc;
+    }
+</style>
+
+<body>
+    <div class="main">
+        <button class="btn1" id="start">开始游戏</button>
+        <button class="btn2" id="pause">暂停游戏</button>
+        <button class="btn3" id="stop1">停止游戏</button>
+        <div class="map" id="map"></div>
+    </div>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+    // 工具
+    class Tools {
+        $ = id => document.getElementById(id)
+        c_ = tageName => document.createElement(tageName)
+    }
+
+
+    // 蛇
+    class Snake extends Tools {
+        constructor() {
+            super()
+            this.map = this.$('map')
+            this.body = [{ x: 2, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 0 }]
+
+            this.width = 15
+            this.height = 15
+            this.toward = 'right'
+            this.bodyCreate()
+            this.keydowmEvent()
+        }
+
+        // 创建蛇的身体
+        bodyCreate() {
+            this.body.forEach(item => {
+                // 调用这个方法构造身体前，先删除掉原本的旧身体
+                if (item.oldCode) {
+                    this.map.removeChild(item.oldCode)
+                }
+                let div = this.c_('div')
+                div.style.width = this.width + 'px'
+                div.style.height = this.height + 'px'
+                div.style.backgroundColor = 'red'
+                div.style.border = '1px black solid'
+                div.style.position = 'absolute'
+                div.style.left = item.x * this.width + 'px'
+                div.style.top = item.y * this.height + 'px'
+                item.oldCode = div
+                this.map.appendChild(div)
+            })
+        }
+
+        // 蛇的移动
+        bodyMove() {
+            // console.log(this.body);
+            this.firstBody = { ...this.body.pop() }
+            switch (this.toward) {
+                case 'left':
+                    this.firstBody.x = this.body[0].x - 1
+                    this.firstBody.y = this.body[0].y
+                    break;
+                case 'right':
+                    this.firstBody.x = this.body[0].x + 1
+                    this.firstBody.y = this.body[0].y
+                    break;
+                case 'top':
+                    this.firstBody.x = this.body[0].x
+                    this.firstBody.y = this.body[0].y - 1
+                    break;
+                case 'bottom':
+                    this.firstBody.x = this.body[0].x
+                    this.firstBody.y = this.body[0].y + 1
+                    break;
+            }
+            this.body.unshift(this.firstBody)
+            this.addBody()
+            this.bodyCreate();
+            this.edgaControl()
+        }
+
+        // 键盘按键的逻辑 控制方向和加速移动
+        keydowmEvent() {
+            document.onkeydown = (e) => {
+                switch (e.keyCode) {
+                    case 37:
+                        this.toward = 'left'
+                        break
+                    case 38:
+                        this.toward = 'top'
+                        break
+                    case 39:
+                        this.toward = 'right'
+                        break
+                    case 40:
+                        this.toward = 'bottom'
+                        break
+                }
+                this.bodyMove()
+            }
+        }
+
+
+        // 吃食物长大
+        addBody() {
+            if (f.foodLeft == this.body[0].x * this.width && f.foodTop == this.body[0].y * this.height) {
+                let { x } = this.firstBody
+                let { y } = this.firstBody
+                this.body.push({ x: x, y: y })
+                f.takeFoodAway()
+                f.creatFood()
+            }
+        }
+
+        // 边界控制
+        edgaControl() {
+            if (this.firstBody.x < 0 || this.firstBody.x > this.map.offsetWidth / this.width - 1) {
+                b.stopEven()
+                alert('您已死亡，请重新开始')
+            }
+            if (this.firstBody.y < 0 || this.firstBody.y > this.map.offsetHeight / this.height - 1) {
+                b.stopEven()
+                alert('您已死亡，请重新开始')
+            }
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // 按钮
+    class btnControl extends Tools {
+        constructor(snakeContext) {
+            super()
+            this.btnStart = this.$('start')
+            this.btnPause = this.$('pause')
+            this.btnStop1 = this.$('stop1')
+            // 用于接受不同的Snake实例名称
+            // 判断接受的参数是否正确，异常捕获
+            if (snakeContext instanceof Snake) {
+                this.s = snakeContext
+                this.btnEven()
+            } else {
+                alert('传参错误')
+            }
+        }
+
+        // 键盘事件
+        btnEven = () => {
+            this.btnStart.onclick = this.startEven
+            this.btnPause.onclick = this.pauseEven
+            this.btnStop1.onclick = this.stopEven
+        }
+
+        // 开始按钮
+        startEven = () => {
+            this.interval = setInterval(() => {
+                this.s.bodyMove()
+            }, 400)
+            // if (f.newFood) {
+
+            // }
+            // f.creatFood()
+            this.btnStart.disabled = true
+            f.newFood.style.display = 'block'
+        }
+
+        // 暂停按钮
+        pauseEven = () => {
+            clearInterval(this.interval)
+            this.btnStart.disabled = false
+        }
+
+        // 停止按钮
+        stopEven = () => {
+            clearInterval(this.interval)
+            this.s.map.innerHTML = ""
+            this.s.toward = 'right';
+            this.s.body = [{ x: 2, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 0 }]
+            this.s.bodyCreate()
+            f.creatFood()
+            f.newFood.style.display = 'none'
+            this.btnStart.disabled = false
+
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // 食物
+    class food extends Tools {
+        // 基础属性
+        constructor() {
+            super()
+            this.width = 15
+            this.height = 15
+            this.map = this.$('map')
+            this.creatFood()
+        }
+
+        // 创造出食物
+        creatFood() {
+            this.newFood = this.c_('div')
+            this.newFood.style.width = this.width + 'px'
+            this.newFood.style.height = this.height + 'px'
+            this.newFood.style.backgroundColor = 'blue'
+            this.newFood.style.position = 'absolute'
+            this.newFood.style.border = '1px solid black'
+            this.creatFoodPosition()
+            this.map.appendChild(this.newFood)
+
+        }
+
+        // 创造食物的位置
+        creatFoodPosition() {
+            this.foodLeft = parseInt(Math.random() * parseInt(this.map.offsetWidth / (this.width))) * (this.width);
+            this.foodTop = parseInt(Math.random() * parseInt(this.map.offsetHeight / (this.height))) * (this.height);
+            this.newFood.style.left = this.foodLeft + 'px'
+            this.newFood.style.top = this.foodTop + 'px'
+        }
+
+        // 移除食物
+        takeFoodAway() {
+            this.map.removeChild(this.newFood)
+        }
+    }
+
+    let f = new food
+
+    let s = new Snake
+
+    let b = new btnControl(s)
+
+
+</script>
